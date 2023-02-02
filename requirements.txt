@@ -1,0 +1,2 @@
+﻿discord.py[speed]
+python-dotenv
