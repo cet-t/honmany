@@ -2,27 +2,12 @@ import discord
 from discord.ext import commands
 
 intents = discord.Intents.all()
-
-bot = commands.Bot(command_prefix='?', intents=intents)
+bot = commands.Bot(command_prefix='.', intents=intents)
 
 
 @bot.command()
 async def ping(ctx):
     await ctx.reply("pong!")
-
-
-# class CreateButton(discord.ui.View):
-#     def __init__(self):
-#         super().__init__()
-
-#     @discord.ui.button(label="ボタンです")
-#     async def return_message(self, button: discord.ui.Button, interaction: discord.Interaction):
-#         await interaction.response.send_message("折り返しのメッセージだよ")
-
-
-# class button_(commands.Bot):
-#     def __init__(self):
-#         super().__init__()
 
 
 # ? 基 https://qiita.com/nyanmi-1828/items/54f165e77d4f7af770f7
@@ -48,18 +33,19 @@ async def b(ctx: commands.Context):
 
 
 if __name__ == "__main__":
-    import os
-    from dotenv import load_dotenv
+    from os import *
+    from dotenv import *
     load_dotenv()
 
     try:
-        token = os.environ["TOKEN"]
+        token = environ["TOKEN"]
     except KeyError:
+        # ? ナマで書きたくないけど読み込めんからしょうがなく
         token = "NzM4NjczNzA5ODAzNTAzNjc4.GyiREr.nDBWKYwGtRWY0qTtmcfPhHkoK-4Gk6D6sBX0G0"
 
     @bot.event
     async def on_ready():
-        print(f"{bot.user} is ready")
+        print(f"{bot.user.id} is ready")
 
     bot.run(token)
 
