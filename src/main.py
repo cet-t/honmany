@@ -33,19 +33,18 @@ async def b(ctx: commands.Context):
 
 
 if __name__ == "__main__":
-    from os import *
-    from dotenv import *
+    import os
+    from dotenv import load_dotenv
     load_dotenv()
 
     try:
-        token = environ["TOKEN"]
+        token = os.environ["TOKEN"]
     except KeyError:
-        # ? ナマで書きたくないけど読み込めんからしょうがなく
-        token = "NzM4NjczNzA5ODAzNTAzNjc4.GyiREr.nDBWKYwGtRWY0qTtmcfPhHkoK-4Gk6D6sBX0G0"
+        token = os.environ["TOKEN"]
 
     @bot.event
     async def on_ready():
-        print(f"{bot.user.id} is ready")
+        print(f"{bot.user} is ready")
 
     bot.run(token)
 
