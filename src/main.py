@@ -1,17 +1,16 @@
 import discord
 from discord.ext import commands
+from discord_slash import SlashCommand, SlashContext
+
+from for4 import *
 
 intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='.', intents=intents)
-
-
-@bot.command()
-async def ping(ctx):
-    await ctx.reply("pong!")
+bot = commands.Bot(command_prefix='?', intents=intents)
+slash = SlashCommand(bot, sync_commands=True)
 
 
 # ? 基 https://qiita.com/nyanmi-1828/items/54f165e77d4f7af770f7
-class creat_button(discord.ui.View):
+class create_button(discord.ui.View):
     def __init__(self, _text: str):
         super().__init__()
         self.text: str = _text
@@ -19,34 +18,35 @@ class creat_button(discord.ui.View):
 
 
 @bot.command()
-@discord.ui.button()
-async def botan(ctx, btn: discord.ui.button):
-    await ctx.send(view=creat_button("botan"))
-    await btn.interaction.response.send_message("bobotantan")
-
-#! ボタンを実装する
+async def ping(ctx):
+    await ctx.reply('pong!')
 
 
-@bot.command()
-async def b(ctx: commands.Context):
-    await ctx.send(view=creat_button("ぶっとん"))
+@slash.slash(name='really honmany?', description='call me honmany')
+async def honmany_really(ctx: SlashContext):
+    await ctx.reply(f'hi, {ctx.author.display_name}')
 
 
-if __name__ == "__main__":
+@bot.event
+async def on_raw_message_delete(ch: discord.channel, ctx):
+    await ctx.ch.send('msg delete now')
+
+
+if __name__ == '__main__':
     import os
-    from dotenv import load_dotenv
-    load_dotenv()
+    import dotenv
 
+    dotenv.load_dotenv()
     try:
-        token = os.environ["TOKEN"]
+        token = os.environ['TOKEN']
     except KeyError:
-        token = os.environ["TOKEN"]
+        import pyenv
+        token = pyenv.TOKEN
 
     @bot.event
     async def on_ready():
-        print(f"{bot.user} is ready")
+        print(f'{bot.user} is ready')
 
     bot.run(token)
 
-#! document
 #! https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html
