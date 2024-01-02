@@ -1,52 +1,58 @@
 import discord
-from discord.ext import commands
-from discord_slash import SlashCommand, SlashContext
+from discord import app_commands
+import numpy as np
+import random
 
+from trrne.lottery import Lottery
 from for4 import *
 
-intents = discord.Intents.all()
-bot = commands.Bot(command_prefix='?', intents=intents)
-slash = SlashCommand(bot, sync_commands=True)
+bot = discord.Client(intents=discord.Intents.default())
+tree = app_commands.CommandTree(bot)
 
 
-# ? 基 https://qiita.com/nyanmi-1828/items/54f165e77d4f7af770f7
-class create_button(discord.ui.View):
-    def __init__(self, _text: str):
-        super().__init__()
-        self.text: str = _text
-        self.add_item(discord.ui.Button(label=self.text))
+# @tree.command(name='hello', description='honmany!')
+# async def hello(action: discord.Interaction):
+#     await action.response.send_message('hello honmany!')
 
 
-@bot.command()
-async def ping(ctx):
-    await ctx.reply('pong!')
+@tree.command(name='くじ', description='あわわ')
+async def lot(action: discord.Interaction):
+    #     index = Lottery.bst(kuji.weights())
+    #     dst = f'{kuji.subjects()[index]}({int(np.floor(kuji.weights()[index]/kuji.total_weight()*100))}%)'
+    #     await action.response.send_message(dst)
+
+    dst: str = ''
+    for i in range(10):
+        index = Lottery.bst(kuji.weights())
+        dst += str(i+1) + ': ' + kuji.subjects()[index] + '(' + str(int(
+            np.floor(kuji.weights()[index]/kuji.total_weight()*100))) + '%)'
+        if i < 10:
+            dst += '\n'
+    await action.response.send_message(dst)
 
 
-@slash.slash(name='really honmany?', description='call me honmany')
-async def honmany_really(ctx: SlashContext):
-    await ctx.reply(f'hi, {ctx.author.display_name}')
-
-
-@bot.event
-async def on_raw_message_delete(ch: discord.channel, ctx):
-    await ctx.ch.send('msg delete now')
-
+@tree.command(name='最先端ギャグ', description='おもろすぎるもの')
+async def joke(action: discord.Interaction):
+    await action.response.send_message(jokes[random.randint(0, len(jokes))])
 
 if __name__ == '__main__':
     import os
-    import dotenv
+    # import dotenv
 
-    dotenv.load_dotenv()
-    try:
-        token = os.environ['TOKEN']
-    except KeyError:
-        import pyenv
-        token = pyenv.TOKEN
+    # dst: str = ''
+    # for i in range(10):
+    #     dst += kuji.subjects[Lottery.bst(kuji.weights())]+'\n'
+    # print(dst)
 
     @bot.event
     async def on_ready():
-        print(f'{bot.user} is ready')
+        await bot.change_presence(activity=discord.Game('active honmany!'))
+        await tree.sync()
 
+    # dotenv.load_dotenv()
+    # token = os.environ['TOKEN']
+    # もろ晒し
+    token = 'NzM4NjczNzA5ODAzNTAzNjc4.GwoRrb.Pg8zhhaLw9l8XDn17vQHZc2hVNJEpAEeZ8HwOY' 
     bot.run(token)
 
 #! https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html
