@@ -1,5 +1,8 @@
 ﻿from random import SystemRandom
 from enum import Enum
+from typing import TypeVar, Generic
+
+T = TypeVar('T')
 
 
 class STRTYPE(Enum):
@@ -51,6 +54,7 @@ class Rnd:
     @staticmethod
     def randfloat(min=0.0, max=0.0) -> float:
         return SystemRandom().uniform(min, max)
+
 
 # https://qiita.com/mk668a/items/d53515817c41e22e77f0
 # https://www.hanachiru-blog.com/entry/2019/02/01/190918

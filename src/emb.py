@@ -16,7 +16,7 @@ shota = discord.Embed(
         ショタコンサルティング業界に入るまでは空手やサッカーもやっていた。\n\
         趣味は弟が買っているヘビに首を絞めてもらったり尿道、ケツ穴を刺激してもらうこと。(wiki)\n\
         インスタ - https://www.instagram.com/shota_424/",
-    color=0XE16941
+    color=0xE16941
 )
 
 hanako = discord.Embed(
@@ -25,7 +25,7 @@ hanako = discord.Embed(
         生年月日は不明\n\
         身長は159㎝。自分で言っているだけなので本当かどうかはわからない。低いや短いというとよくわからない寝転んでいる写真を見せつけてくる。\n\
         趣味はイマジナリーガールフレンドとイイことを.......(本人情報)",
-    color=0XEE82EE
+    color=0xEE82EE
 )
 
 maru = discord.Embed(
@@ -34,7 +34,7 @@ maru = discord.Embed(
         生年月日不明\n\
         趣味はガンダムごっこ、数学の問題の丸付け、キャップを舐めまわすこと。\n\
         普段からdvをしているため、女性からは畏怖の対象。福島という謎の生態とは両想い。(weblio)",
-    color=0X2FFFAD
+    color=0x2FFFAD
 )
 
 leo = discord.Embed(
@@ -43,7 +43,7 @@ leo = discord.Embed(
         2/1,3/1/2004生まれのプロゴッドフィールダー。UGC(Ultimate Godfield Chanmpionship)所属\n\
         現在岸田に一番近い人類として知られている。名前の由来は自分のキンタマがクリスタルのように光っていたことから。(レオママより)\n\
         収入源はゴッフィ世界大会の賞金とATM（かっちゃん）。",
-    color=0XD670DA
+    color=0xD670DA
 )
 
 yuto = discord.Embed(
@@ -51,7 +51,7 @@ yuto = discord.Embed(
     description="本名:勇冨(Yu-Tomi)\n\
         ?/?/2003生まれ。アナル開発の第一人者。\n\
         趣味はママにトコロテンを...おっと、誰か来たようだ。最近はカジタニーにはまっているらしい。(twitter for china))",
-    color=0X8F8FBC
+    color=0x8F8FBC
 )
 
 yuko = discord.Embed(
@@ -63,7 +63,7 @@ yuko = discord.Embed(
 seto = discord.Embed(
     title="せと",
     description="本名:--(--)\n\
-        2/17/2004生まれ。--\n\
+        平成生まれ。--\n\
         小さい頃の夢は蛙、河童になること。いつも面白くないギャグを丸ファナファファファーーー↑ｗｗｗｗｗｗナに言わされている。\n\
         職業はゆうとみのカジタニーの助手。"
 )
