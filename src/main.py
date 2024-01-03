@@ -34,12 +34,23 @@ async def honmany(action: discord.Interaction):
     await action.response.send_message(fr'{names[randint(0, len(names)-1)]}サン、コンニチハ！')
 
 
-@tree.command(name='名前登録', description='a')
+@tree.command(name='名前登録', description='名前を追加する')
 @app_commands.describe(target='追加したいメンバー', addition='追加したい名前')
-async def register_name(action: discord.Interaction, target: discord.Member, addition: str):
+async def add_name(action: discord.Interaction, target: discord.Member, addition: str):
     # http://www.not-enough.org/abe/manual/api-aa09/fileio.html
     with open(filepath(target.id), 'a', encoding=ENCODE) as f:
         f.write(f' {addition}')
+    await action.response.send_message('success', ephemeral=True)
+
+
+# TODO 動作確認
+@tree.command(name='名前削除', description='登録された名前を削除する')
+@app_commands.describe(target='メンバー', delete='削除したい名前')
+async def delete_name(action: discord.Interaction, target: discord.Member, delete: str):
+    with open(filepath(target.id), 'w+', encoding=ENCODE) as f:
+        names = f.read().split(' ')
+        names.remove(delete)
+        f.write(str.join(' ', names))
     await action.response.send_message('success', ephemeral=True)
 
 
