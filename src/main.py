@@ -13,16 +13,18 @@ bot = discord.Client(intents=discord.Intents.default())
 tree = app_commands.CommandTree(bot)
 
 
-def nickname_file_path(id: int):
-    return f'./nicknames/{id}.txt'
+# def nickname_file_path(id: int):
+#     return f'./nicknames/{id}.txt'
 
+
+nickname_file_path: str = lambda id: f'./nicknames/{id}.txt'
 
 ENCODE = 'utf-8'
 
 
-@tree.command(name='aa', description='bb')
+@tree.command(name='test', description='command for test')
 async def cc(action: discord.Interaction):
-    raise Exception('dd')
+    await action.response.send_message('testing', ephemeral=True)
 
 
 @tree.command(name='ほんめにー', description='あいさつ')
@@ -73,7 +75,7 @@ async def lot10(action: discord.Interaction):
     await action.response.send_message(dst)
 
 
-@tree.command(name='くじn口', description='道徳46点の方向け')
+@tree.command(name='くじn口', description='道徳n点の方向け')
 @app_commands.describe(count='回数')
 async def lotn(action: discord.Interaction, count: int):
     dst: str = ''
@@ -108,7 +110,7 @@ if __name__ == '__main__':
     @bot.event
     async def on_ready():
         print('i\'m ready')
-        await bot.change_presence(activity=discord.Game('active honmany!'))
+        await bot.change_presence(activity=discord.Game('なんか'))
         await tree.sync()
 
     try:
