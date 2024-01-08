@@ -13,11 +13,8 @@ bot = discord.Client(intents=discord.Intents.default())
 tree = app_commands.CommandTree(bot)
 
 
-# def nickname_file_path(id: int):
-#     return f'./nicknames/{id}.txt'
+nickname_filepath: str = lambda id: f'./nicknames/{id}.txt'
 
-
-nickname_file_path: str = lambda id: f'./nicknames/{id}.txt'
 
 ENCODE = 'utf-8'
 
@@ -27,11 +24,22 @@ async def cc(interaction: discord.Interaction):
     await interaction.response.send_message('testing', ephemeral=True)
 
 
+@tree.command(name='なまえリスト', description='登録されているなまえのリスト')
+@app_commands.describe(target='表示したいユーザー')
+@app_commands.guild_only()
+async def show_names(interaction: discord.Interaction, user: discord.Member):
+    try:
+        with open(nickname_filepath(user.id), 'r', encoding=ENCODE) as f:
+            interaction.response.send_message('\n'.join(f.read().split(' ')))
+    except:
+        interaction.response.send_message('rejected')
+
+
 @tree.command(name='ほんめにー', description='あいさつ')
 @app_commands.guild_only()
 async def honmany(interaction: discord.Interaction):
     try:
-        with open(nickname_file_path(interaction.user.id), 'r', encoding=ENCODE) as f:
+        with open(nickname_filepath(interaction.user.id), 'r', encoding=ENCODE) as f:
             names = f.read().split(' ')
         print(str.join(',', names))
         await interaction.response.send_message(f'{names[randint(0, len(names)-1)]}サン、コンニチハ！')
@@ -41,10 +49,11 @@ async def honmany(interaction: discord.Interaction):
 
 @tree.command(name='名前追加', description='新しい呼び名を追加')
 @app_commands.describe(target='対象のメンバー', addition='追加したい名前')
+@app_commands.guild_only()
 async def add_name(interaction: discord.Interaction, target: discord.Member, addition: str):
     # http://www.not-enough.org/abe/manual/api-aa09/fileio.html
     try:
-        with open(nickname_file_path(target.id), 'a', encoding=ENCODE) as f:
+        with open(nickname_filepath(target.id), 'a', encoding=ENCODE) as f:
             f.write(f' {addition}')
             await interaction.response.send_message('success', ephemeral=True)
     except:
@@ -54,9 +63,10 @@ async def add_name(interaction: discord.Interaction, target: discord.Member, add
 # TODO 動作確認
 @tree.command(name='名前削除', description='登録された名前を削除する')
 @app_commands.describe(target='対象のメンバー', delete='削除したい名前')
+@app_commands.guild_only()
 async def delete_name(interaction: discord.Interaction, target: discord.Member, delete: str):
     try:
-        with open(nickname_file_path(target.id), 'w+', encoding=ENCODE) as f:
+        with open(nickname_filepath(target.id), 'w+', encoding=ENCODE) as f:
             names = f.read().split(' ')
             names.remove(delete)
             f.write(str.join(' ', names))
