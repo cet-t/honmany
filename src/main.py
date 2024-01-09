@@ -1,3 +1,4 @@
+from datetime import datetime
 import discord
 from discord import app_commands
 from random import randint
@@ -17,12 +18,34 @@ get_nickname_filepath: str = lambda id: f'./nicknames/{id}.txt'
 
 
 ENCODING_UTF8 = 'utf-8'
-REJECTED = 'Rejected'
+REJECTED = 'rejected'
 
 
 @tree.command(name='test', description='command for test')
 async def cc(interaction: discord.Interaction):
     await interaction.response.send_message('testing', ephemeral=True)
+
+
+@tree.command(name='user_info', description='ユーザー情報')
+@app_commands.describe(member='メンバー')
+async def user_info(interaction: discord.Interaction, member: discord.Member):
+    mc = member.created_at
+    account_created = f'{mc.year}/{mc.month}/{mc.day} {mc.hour}:{mc.minute}:{mc.second}'
+    mj = member.joined_at
+    server_joined = f'{mj.year}/{mj.month}/{mj.day} {mj.hour}:{mj.minute}:{mj.second}'
+    info_embed = discord.Embed(
+        title=member.name,
+        description=None,
+        colour=discord.Colour.green(),
+        timestamp=datetime.now(),
+    )
+    info_embed.description = f'\
+        ユーザーid: {member.id}\n\
+        アカウント作成日時: {account_created}\n\
+        サーバー参加日: {server_joined}\n\
+        ロール: {",".join([role.mention for role in member.roles if role.name != "@everyone"])}'
+    info_embed.set_image(url=member.avatar.url)
+    await interaction.response.send_message(embed=info_embed, ephemeral=True)
 
 
 @tree.command(name='nickname_list', description='登録されているなまえのリスト')
@@ -38,24 +61,24 @@ async def show_names(interaction: discord.Interaction, member: discord.Member):
 
 @tree.command(name='registered_users_list', description='登録されているユーザーリスト')
 async def registerd_users(interaction: discord.Interaction):
-    directory = './nicknames'
-    users: list[str] = []
-    for file in os.listdir(directory):
-        users.append(f'<@{os.path.basename(file).removesuffix(".txt")}>')
-    counts: list[int] = []
-    for user in users:
-        with open(get_nickname_filepath(delete_lump(user, ['<@', '>'])), 'r', encoding=ENCODING_UTF8) as f:
-            counts = len(f.read().split(' '))
-
-    await interaction.response.send_message('\n'.join(users))
-    dst: list[str] = []
-    for user, count in zip(users, counts):
-        dst.append(f'{user}: {count}')
-    interaction.response.send_message(discord.Embed(
-        title='registered users list',
-        description='\n'.join(dst),
-        colour=discord.Colour.dark_orange()
-    ))
+    try:
+        users: list[str] = []
+        for file in os.listdir('./nicknames'):
+            users.append(f'<@{os.path.basename(file).removesuffix(".txt")}>')
+        counts: list[int] = []
+        for user in users:
+            with open(get_nickname_filepath(delete_lump(user, ['<@', '>'])), 'r', encoding=ENCODING_UTF8) as f:
+                counts.append(len(f.read().split(' ')))
+        dst: list[str] = []
+        for user, count in zip(users, counts):
+            dst.append(f'{user}: {count}')
+        await interaction.response.send_message(embed=discord.Embed(
+            title='登録されているユーザー',
+            description='\n'.join(dst),
+            colour=discord.Colour.orange()
+        ))
+    except:
+        await interaction.response.send_message(REJECTED)
 
 
 @tree.command(name='ほんめにー', description='あいさつ')
@@ -118,13 +141,9 @@ async def lotn(interaction: discord.Interaction, count: int):
     for _ in range(count):
         index = Lottery.bst(kuji.weights())
         counters[index] += 1
-    dst: list[str] = []
-    for i in range(kuji.length()):
-        if counters[i] > 0:
-            space = (kuji_max_length-len(kuji.subjects()[i]))*2
-            element = kuji.subjects()[i].ljust(space, "◯")
-            dst.append(f'{element}: {counters[i]}')
-    await interaction.response.send_message('\n'.join(dst))
+    await interaction.response.send_message('\n'.join([
+        f'{sub}: {count}' for (sub, count) in zip(kuji.subjects(), counters) if count > 0
+    ]))
 
 
 @tree.command(name='くじ1口', description='道徳100点の方向け')
