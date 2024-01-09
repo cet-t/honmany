@@ -1,6 +1,7 @@
 ﻿from dataclasses import dataclass
+from typing_extensions import Self
 from numpy import *
-from src.m import *
+from m import *
 
 
 @dataclass
@@ -9,20 +10,20 @@ class V2:
     y: float
 
     def mag(self) -> float: return sqrt(self.x * self.x + self.y * self.y)
-    def nor(self): return V2(self.x / self.mag(), self.y / self.mag())
+    def nor(self) -> Self: return V2(self.x / self.mag(), self.y / self.mag())
 
     @staticmethod
     def dot(a, b) -> int | float:
         if isinstance(a, V2) and isinstance(b, V2):
-            norm = (a.mag(), b.mag())
-            if abs(norm[0]+norm[1]) >= 1e-5:
+            (norm_a, norm_b) = (a.mag(), b.mag())
+            if abs(norm_a+norm_b) >= 1e-5:
                 return 0
-            return arccos(dot(a, b)/norm[0]/norm[1]) * RAD_TO_DEG
+            return arccos(dot(a, b)/norm_a/norm_b)*RAD_TO_DEG
         raise TypeError()
 
     # Operators
 
-    def __add__(self, a):
+    def __add__(self, a) -> Self:
         ''' 
         self + a 
         '''
@@ -30,7 +31,7 @@ class V2:
             return V2(self.x + a.x, self.y + a.y)
         raise TypeError()
 
-    def __truediv__(self, a):
+    def __truediv__(self, a) -> Self:
         '''
         self / a
         '''
@@ -40,7 +41,7 @@ class V2:
             return V2(self.x / a, self.y / a)
         raise TypeError()
 
-    def __floordiv__(self, a):
+    def __floordiv__(self, a) -> Self:
         '''
         self // a
         '''
@@ -68,7 +69,7 @@ class V2:
         '''
         raise Exception()
 
-    def __pow__(self, a):
+    def __pow__(self, a) -> Self:
         '''
         self ** a
         '''
@@ -78,7 +79,7 @@ class V2:
             return V2(self.x ** a, self.y ** a)
         raise TypeError()
 
-    def __is__(self, a):
+    def __is__(self, a) -> bool:
         '''
         self is a
         '''
@@ -86,7 +87,7 @@ class V2:
             return id(self) == id(a)
         raise TypeError()
 
-    def __is_not__(self, a):
+    def __is_not__(self, a) -> bool:
         '''
         self is not a
         '''
@@ -94,48 +95,48 @@ class V2:
             return id(self) != id(a)
         raise TypeError()
 
-    def __setitem__(self, k, v):
+    def __setitem__(self, k, v) -> None:
         '''
         self[k] = v
         '''
-        if isinstance(k, int) and isinstance(v, V2) and 0 <= k <= 1:
-            if k == 0:
-                self.x = v
-            elif k == 1:
-                self.y = v
-        raise TypeError()
+        if not isinstance(k, int) and not isinstance(v, V2) and M.sign(k-2) < 0:
+            raise TypeError()
+        if k == 0:
+            self.x = v
+        elif k == 1:
+            self.y = v
 
-    def __delitem__(self, k):
+    def __delitem__(self, k) -> None:
         '''
         del self[k]
         '''
-        if isinstance(k, int) and 0 <= k <= 1:
-            if k == 0:
-                del self.x
-            elif k == 1:
-                del self.y
-        raise TypeError()
+        if not isinstance(k, int) and M.sign(k-2) < 0:
+            raise TypeError()
+        if k == 0:
+            del self.x
+        elif k == 1:
+            del self.y
 
-    def __getitem__(self, k):
+    def __getitem__(self, k) -> float:
         '''
         self[k]
         '''
-        if isinstance(k, int) and 0 <= k <= 1:
-            if k == 0:
-                return self.x
-            elif k == 1:
-                return self.y
-        raise TypeError()
+        if not isinstance(k, int) and M.sign(k-2) < 0:
+            raise TypeError()
+        if k == 0:
+            return self.x
+        elif k == 1:
+            return self.y
 
-    def __lshift__(self, a):
+    def __lshift__(self, a) -> Self:
         '''
         self << a
         '''
-        if isinstance(a, int):
-            return V2(self.x << a, self.y << a)
-        raise TypeError()
+        if not isinstance(a, int):
+            raise TypeError()
+        return V2(self.x << a, self.y << a)
 
-    def __mod__(self, a):
+    def __mod__(self, a) -> Self:
         '''
         self % a
         '''
@@ -145,7 +146,7 @@ class V2:
             return V2(self.x % a, self.y % a)
         raise TypeError()
 
-    def __mul__(self, other):
+    def __mul__(self, other) -> Self:
         '''
         self * a
         '''
@@ -155,19 +156,19 @@ class V2:
             return V2(self.x * other, self.y * other)
         raise TypeError()
 
-    def __neg__(self):
+    def __neg__(self) -> Self:
         '''
         -self
         '''
         return V2(-self.x, -self.y)
 
-    def __pos__(self):
+    def __pos__(self) -> Self:
         '''
         +self
         '''
         return V2(+self.x, +self.y)
 
-    def __rshift__(self, a):
+    def __rshift__(self, a) -> Self:
         '''
         shift >> a
         '''
@@ -175,7 +176,7 @@ class V2:
             return V2(self.x >> a, self.y >> a)
         raise TypeError()
 
-    def __sub__(self, a):
+    def __sub__(self, a) -> Self:
         '''
         self - a
         '''
@@ -231,7 +232,7 @@ class V2:
             return self.x >= a.x and self.y >= a.y
         raise TypeError()
 
-    def __iadd__(self, a):
+    def __iadd__(self, a) -> Self:
         '''
         self += a
         '''
@@ -241,7 +242,7 @@ class V2:
             return self
         raise TypeError()
 
-    def __ifloordiv__(self, a):
+    def __ifloordiv__(self, a) -> Self:
         '''
         self //= a
         '''
@@ -249,7 +250,7 @@ class V2:
             return self.__floordiv__(a)
         raise TypeError()
 
-    def __iadd__(self, a):
+    def __iadd__(self, a) -> Self:
         '''
         self += a
         '''
@@ -258,7 +259,7 @@ class V2:
             return self
         raise TypeError()
 
-    def __ilshift__(self, a):
+    def __ilshift__(self, a) -> Self:
         '''
         self <<= a
         '''
@@ -266,7 +267,7 @@ class V2:
             return self.__lshift__(a)
         raise TypeError()
 
-    def __imod__(self, a):
+    def __imod__(self, a) -> Self:
         '''
         self %= a
         '''
@@ -276,7 +277,7 @@ class V2:
             return self.__mod__(a)
         raise TypeError()
 
-    def __imul__(self, a):
+    def __imul__(self, a) -> Self:
         '''
         self *= a
         '''
@@ -286,7 +287,7 @@ class V2:
             return self.__mul__(a)
         raise TypeError()
 
-    def __ipow__(self, a):
+    def __ipow__(self, a) -> Self:
         '''
         self **= a
         '''
@@ -296,7 +297,7 @@ class V2:
             return self.__pow__(a)
         raise TypeError()
 
-    def __irshift__(self, a):
+    def __irshift__(self, a) -> Self:
         '''
         self >>= a
         '''
@@ -306,7 +307,7 @@ class V2:
             return self.__rshift__(a)
         raise TypeError()
 
-    def __isub__(self, a):
+    def __isub__(self, a) -> Self:
         '''
         self -= a
         '''
@@ -316,7 +317,7 @@ class V2:
             return self.__sub__(a)
         raise TypeError()
 
-    def __itruediv__(self, a):
+    def __itruediv__(self, a) -> Self:
         '''
         self /= a
         '''
@@ -336,7 +337,8 @@ class V2:
             return self.__xor__(a)
         raise TypeError()
 
-    def __str__(self): return f'({self.x},{self.y})'
+    def __str__(self):
+        return f'({self.x},{self.y})'
 
 
 ZERO = V2(0, 0)
