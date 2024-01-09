@@ -3,8 +3,8 @@
 fi = float | int
 
 PI = 3.141592653589793
-DEG_TO_RAD = PI * 2.0 / 360.0
-RAD_TO_DEG = 1.0 / DEG_TO_RAD
+DEG_TO_RAD = PI / 180
+RAD_TO_DEG = 180 / PI
 
 
 class M:
@@ -20,7 +20,7 @@ class M:
 
     @staticmethod
     def floor(n: fi, digit: int) -> fi:
-        pow: float = M.pow(10, digit)
+        pow = M.pow(10, digit)
         return np.floor(n * pow) / pow
 
     @staticmethod

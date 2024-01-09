@@ -5,30 +5,19 @@ from hashlib import pbkdf2_hmac
 
 
 class MyAES:
-    def __init__(self, password, size=16) -> None:
-        self.__salt = get_random_bytes(16)
-        self.__password = password
-        self.__iv = get_random_bytes(16)
+    def __init__(self, password, *, size: int = 16, hash: str = 'sha256') -> None:
         self.__size = size
+        self.__salt = get_random_bytes(self.__size)
+        self.__password = password
+        self.__iv = get_random_bytes(self.__size)
+        self.__hash = hash
 
     def en(self, src):
-
-        key = pbkdf2_hmac(
-            'sha256', bytes(self.__password, encoding='utf-8'),
-            self.__salt,
-            50000,
-            self.__size
-        )
-
-        data = Padding.pad(src.encode('utf-8'), AES.block_size, 'pkcs7')
-        return AES.new(key, AES.MODE_CBC, self.__iv).encrypt(data)
+        key = pbkdf2_hmac(self.__hash, bytes(
+            self.__password, encoding='utf-8'), self.__salt, 50000, self.__size)
+        return AES.new(key, AES.MODE_CBC, self.__iv).encrypt(Padding.pad(src.encode('utf-8'), AES.block_size, 'pkcs7'))
 
     def de(self, src):
-        key = pbkdf2_hmac(
-            'sha256',
-            bytes(self.__password, encoding='utf-8'),
-            self.__salt,
-            50000,
-            self.__size
-        )
+        key = pbkdf2_hmac(self.__hash, bytes(
+            self.__password, encoding='utf-8'), self.__salt, 50000, self.__size)
         return AES.new(key, AES.MODE_CBC, self.__iv).decrypt(src)

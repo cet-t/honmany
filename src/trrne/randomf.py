@@ -1,8 +1,5 @@
 ﻿from random import SystemRandom
 from enum import Enum
-from typing import TypeVar, Generic
-
-T = TypeVar('T')
 
 
 class STRTYPE(Enum):
@@ -20,15 +17,15 @@ class Rnd:
     @staticmethod
     def normal_char(n: int) -> list:
         chars = list(Rnd.__ALPHABETS)
-        ls: list = []
+        dst: list = []
         for _ in range(n := len(chars)-1 if n > len(chars) else n-1):
-            ls.append(chars[Rnd().randint(0, n)])
-        return ls
+            dst.append(chars[Rnd.randint(0, n)])
+        return dst
 
     @staticmethod
-    def randstr(n: int, type=STRTYPE.MIX) -> str:
+    def randstr(n: int, *, type=STRTYPE.MIX) -> str:
         if not isinstance(n, int) or not isinstance(type, STRTYPE):
-            raise TypeError
+            raise TypeError()
 
         def mixer(src: str) -> str:
             dst: str = ''
@@ -46,13 +43,15 @@ class Rnd:
             return mixer(Rnd.__ALPHABETS + Rnd.__NUMBERS)
 
     @staticmethod
-    def randint(min=0, max=0) -> int:
-        if isinstance(min, int) or isinstance(max, int):
-            return SystemRandom().randint(int(min), int(max))
-        raise TypeError
+    def randint(min: int = 0, max: int = 0) -> int:
+        if not isinstance(min, int) or not isinstance(max, int):
+            raise TypeError()
+        return SystemRandom().randint(int(min), int(max))
 
     @staticmethod
-    def randfloat(min=0.0, max=0.0) -> float:
+    def randfloat(min: float = 0.0, max: float = 0.0) -> float:
+        if not isinstance(min, (int, float)) or not isinstance(max, (int, float)):
+            raise TypeError()
         return SystemRandom().uniform(min, max)
 
 

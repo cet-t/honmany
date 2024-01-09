@@ -9,8 +9,13 @@ class V2:
     x: float
     y: float
 
-    def mag(self) -> float: return sqrt(self.x * self.x + self.y * self.y)
-    def nor(self) -> Self: return V2(self.x / self.mag(), self.y / self.mag())
+    @property
+    def mag(self) -> float:
+        return sqrt(self.x * self.x + self.y * self.y)
+
+    @property
+    def nor(self) -> Self:
+        return V2(self.x / self.mag(), self.y / self.mag())
 
     @staticmethod
     def dot(a, b) -> int | float:
@@ -20,8 +25,6 @@ class V2:
                 return 0
             return arccos(dot(a, b)/norm_a/norm_b)*RAD_TO_DEG
         raise TypeError()
-
-    # Operators
 
     def __add__(self, a) -> Self:
         ''' 

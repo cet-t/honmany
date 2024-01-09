@@ -8,17 +8,26 @@ class LotteryPair(Generic[T]):
     def __init__(self, pairs: list[tuple[T, float]]) -> None:
         super().__init__()
         self.__pairs: list[tuple[T, float]] = pairs
-        self.__subjects: list[T] = []
-        self.__weights: list[float] = []
-        for i in range(len(pairs)):
-            self.__subjects.append(pairs[i][0])
-            self.__weights.append(pairs[i][1])
+        self.__subjects: list[T] = [pairs[i][0] for i in range(self.length)]
+        self.__weights: list[float] = [pairs[i][1] for i in range(self.length)]
 
-    def length(self) -> int: return len(self.__pairs)
-    def pairs(self) -> list[tuple[T, float]]: return self.__pairs
-    def subjects(self) -> list[T]: return self.__subjects
-    def weights(self) -> list[float]: return self.__weights
+    @property
+    def length(self) -> int:
+        return len(self.__pairs)
 
+    @property
+    def pairs(self) -> list[tuple[T, float]]:
+        return self.__pairs
+
+    @property
+    def subjects(self) -> list[T]:
+        return self.__subjects
+
+    @property
+    def weights(self) -> list[float]:
+        return self.__weights
+
+    @property
     def total_weight(self) -> float:
         dst = .0
         for weight in self.__weights:

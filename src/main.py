@@ -1,8 +1,8 @@
-from datetime import datetime
 import discord
 from discord import app_commands
 from random import randint
 import os
+from datetime import datetime
 
 from trrne.lottery import Lottery
 from for4 import *
@@ -13,8 +13,8 @@ from trrne.trrne import *
 bot = discord.Client(intents=discord.Intents.default())
 tree = app_commands.CommandTree(bot)
 
-
-get_nickname_filepath: str = lambda id: f'./nicknames/{id}.txt'
+get_nick_filepath: str = lambda id: f'./nicks/{id}.txt'
+get_point_filepath: str = lambda id: f'./points/{id}.txt'
 
 
 ENCODING_UTF8 = 'utf-8'
@@ -29,66 +29,60 @@ async def cc(interaction: discord.Interaction):
 @tree.command(name='user_info', description='ユーザー情報')
 @app_commands.describe(member='メンバー')
 async def user_info(interaction: discord.Interaction, member: discord.Member):
+    user_id = member.id
     mc = member.created_at
-    account_created = f'{mc.year}/{mc.month}/{mc.day} {mc.hour}:{mc.minute}:{mc.second}'
+    account_created = f'アカウント作成日時: {mc.year}/{mc.month}/{mc.day} {mc.hour}:{mc.minute}:{mc.second}'
     mj = member.joined_at
-    server_joined = f'{mj.year}/{mj.month}/{mj.day} {mj.hour}:{mj.minute}:{mj.second}'
+    server_joined = f'サーバー参加日時: {mj.year}/{mj.month}/{mj.day} {mj.hour}:{mj.minute}:{mj.second}'
+    roles = ','.join(
+        [role.mention for role in member.roles if role.name != '@everyone'])
     info_embed = discord.Embed(
         title=member.name,
-        description=None,
+        description=f'{user_id}\n{account_created}\n{server_joined}\n{roles}',
         colour=discord.Colour.green(),
         timestamp=datetime.now(),
     )
-    info_embed.description = f'\
-        ユーザーid: {member.id}\n\
-        アカウント作成日時: {account_created}\n\
-        サーバー参加日: {server_joined}\n\
-        ロール: {",".join([role.mention for role in member.roles if role.name != "@everyone"])}'
     info_embed.set_image(url=member.avatar.url)
     await interaction.response.send_message(embed=info_embed, ephemeral=True)
 
 
-@tree.command(name='nickname_list', description='登録されているなまえのリスト')
+@tree.command(name='nicks_list', description='登録されているなまえのリスト')
 @app_commands.describe(member='表示したいユーザー')
 @app_commands.guild_only()
 async def show_names(interaction: discord.Interaction, member: discord.Member):
     try:
-        with open(get_nickname_filepath(member.id), 'r', encoding=ENCODING_UTF8) as f:
+        with open(get_nick_filepath(member.id), 'r', encoding=ENCODING_UTF8) as f:
             await interaction.response.send_message('\n'.join(f.read().split(' ')))
     except:
         await interaction.response.send_message(REJECTED)
 
 
 @tree.command(name='registered_users_list', description='登録されているユーザーリスト')
-async def registerd_users(interaction: discord.Interaction):
+async def registered_users(interaction: discord.Interaction):
     try:
-        users: list[str] = []
-        for file in os.listdir('./nicknames'):
-            users.append(f'<@{os.path.basename(file).removesuffix(".txt")}>')
+        users: list[str] = [
+            f'<@{os.path.basename(file).removesuffix(".txt")}>' for file in os.listdir('./nicks')]
         counts: list[int] = []
         for user in users:
-            with open(get_nickname_filepath(delete_lump(user, ['<@', '>'])), 'r', encoding=ENCODING_UTF8) as f:
+            with open(get_nick_filepath(delete_lump(user, ['<@', '>'])), 'r', encoding=ENCODING_UTF8) as f:
                 counts.append(len(f.read().split(' ')))
-        dst: list[str] = []
-        for user, count in zip(users, counts):
-            dst.append(f'{user}: {count}')
         await interaction.response.send_message(embed=discord.Embed(
             title='登録されているユーザー',
-            description='\n'.join(dst),
+            description='\n'.join(
+                f'{user}: {count}' for user, count in zip(users, counts)),
             colour=discord.Colour.orange()
         ))
     except:
         await interaction.response.send_message(REJECTED)
 
 
-@tree.command(name='ほんめにー', description='あいさつ')
+@tree.command(name='honmany', description='あいさつ')
 @app_commands.guild_only()
 async def honmany(interaction: discord.Interaction):
     try:
-        with open(get_nickname_filepath(interaction.user.id), 'r', encoding=ENCODING_UTF8) as f:
+        with open(get_nick_filepath(interaction.user.id), 'r', encoding=ENCODING_UTF8) as f:
             names = f.read().split(' ')
-        print(str.join(',', names))
-        await interaction.response.send_message(f'{names[randint(0, len(names)-1)]}サン、コンニチハ！')
+            await interaction.response.send_message(f'{names[randint(0, len(names)-1)]}サン、コンニチハ！')
     except:
         await interaction.response.send_message(REJECTED)
 
@@ -97,11 +91,10 @@ async def honmany(interaction: discord.Interaction):
 @app_commands.describe(target='対象のメンバー', addition='追加したい名前')
 @app_commands.guild_only()
 async def add_name(interaction: discord.Interaction, target: discord.Member, addition: str):
-    # http://www.not-enough.org/abe/manual/api-aa09/fileio.html
     try:
-        with open(get_nickname_filepath(target.id), 'a', encoding=ENCODING_UTF8) as f:
+        with open(get_nick_filepath(target.id), 'a', encoding=ENCODING_UTF8) as f:
             f.write(f' {addition}')
-            await interaction.response.send_message(f'success! added {addition} to nickname list', ephemeral=True)
+            await interaction.response.send_message(f'success! added {addition} to nicknames list', ephemeral=True)
     except:
         await interaction.response.send_message(f'{REJECTED}: ユーザーIDが登録されていません', ephemeral=True)
 
@@ -112,16 +105,16 @@ async def add_name(interaction: discord.Interaction, target: discord.Member, add
 @app_commands.guild_only()
 async def delete_name(interaction: discord.Interaction, target: discord.Member, delete: str):
     try:
-        with open(get_nickname_filepath(target.id), 'w+', encoding=ENCODING_UTF8) as f:
+        with open(get_nick_filepath(target.id), 'w+', encoding=ENCODING_UTF8) as f:
             names = f.read().split(' ')
             names.remove(delete)
             f.write(str.join(' ', names))
             await interaction.response.send_message('success', ephemeral=True)
     except:
-        await interaction.response.send_message('rejected', ephemeral=True)
+        await interaction.response.send_message(REJECTED, ephemeral=True)
 
 
-@tree.command(name='くじ10口', description='道徳46点の方向け')
+@tree.command(name='lot_10', description='道徳46点の方向け')
 async def lot10(interaction: discord.Interaction):
     try:
         dst1: list[str] = []
@@ -131,38 +124,75 @@ async def lot10(interaction: discord.Interaction):
             dst1.append(f'{i+1}: {kuji.subjects()[index]}({percentage}%)')
         await interaction.response.send_message('\n'.join(dst1))
     except:
-        await interaction.response.send_message('rejected')
+        await interaction.response.send_message(REJECTED)
 
 
-@tree.command(name='くじn口', description='道徳n点の方向け')
+@tree.command(name='lot_n', description='道徳n点の方向け')
 @app_commands.describe(count='回数')
 async def lotn(interaction: discord.Interaction, count: int):
-    counters: list[int] = [0] * kuji.length()
+    counters: list[int] = [0] * kuji.length
     for _ in range(count):
-        index = Lottery.bst(kuji.weights())
-        counters[index] += 1
+        counters[Lottery.bst(kuji.weights)] += 1
     await interaction.response.send_message('\n'.join([
-        f'{sub}: {count}' for (sub, count) in zip(kuji.subjects(), counters) if count > 0
+        f'{sub}: {count}' for sub, count in zip(kuji.subjects, counters) if count > 0
     ]))
 
 
-@tree.command(name='くじ1口', description='道徳100点の方向け')
+@tree.command(name='lot_1', description='道徳100点の方向け')
 async def lot1(interaction: discord.Interaction):
-    index = Lottery.bst(kuji.weights())
-    dst = f'{kuji.subjects()[index]}({kuji.weights()[index]/kuji.total_weight()*100}%)'
+    index = Lottery.bst(kuji.weights)
+    dst = f'{kuji.subjects[index]}({kuji.weights[index]/kuji.total_weight*100}%)'
     await interaction.response.send_message(dst)
 
 
-@tree.command(name='最先端ギャグ', description='おもろすぎるもの')
+@tree.command(name='super_hyper_ultra_joke', description='おもろすぎるもの')
 async def joke(interaction: discord.Interaction):
     await interaction.response.send_message(jokes[randint(0, len(jokes)-1)])
 
 
-@tree.command(name='でもな', description='でもな、◯◯')
+@tree.command(name='demonax', description='でもな、◯◯')
 @app_commands.describe(name='member')
 async def demona(interaction: discord.Interaction, name: str):
-    await interaction.response.send_message(demona(name))
+    await interaction.response.send_message(dmn(name))
 
+
+@tree.command(name='register_gamble', description='登録する')
+async def register_gamble(interaction: discord.Interaction):
+    try:
+        if os.path.exists(get_point_filepath(interaction.user.id)):
+            return await interaction.response.send_message('すでに登録されています。', ephemeral=True)
+
+        with open(get_point_filepath(interaction.user.id), mode='w', encoding=ENCODING_UTF8) as f:
+            f.write(str(init_point := 100))
+            await interaction.response.send_message(f'アカウントを登録し、{init_point}ポイントを付与しました。', ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(str(e), ephemeral=True)
+
+
+@tree.command(name='delete_gamble', description='削除する')
+async def delete_gamble(interaction: discord.Interaction):
+    try:
+        if not os.path.exists(get_point_filepath(interaction.user.id)):
+            return await interaction.response.send_message('アカウントが登録されていません。', ephemeral=True)
+        os.remove(get_point_filepath(interaction.user.id))
+        await interaction.response.send_message('アカウントを削除しました。', ephemeral=True)
+    except Exception as e:
+        await interaction.response.send_message(str(e), ephemeral=True)
+
+
+@tree.command(name='show_balanced_gamble_point', description='所持しているポイントを表示')
+async def show_point(interaction: discord.Interaction):
+    try:
+        with open(get_point_filepath(interaction.user.id)) as f:
+            await interaction.response.send_message(f'所持ポイント: {f.read()}', ephemeral=True)
+    except:
+        # await interaction.response.send_message(f'アカウントが登録されていない可能性があります。"/{sys._getframe().f_code.co_name}"コマンドを実行してください。', ephemeral=True)
+        await interaction.response.send_message(f'アカウントが登録されていない可能性があります。"/{register_gamble.name}"コマンドを実行してください。', ephemeral=True)
+
+
+@tree.command(name='betting', description='所持しているポイントを表示')
+async def do_gamble(interaction: discord.Interaction):
+    await interaction.response.send_message('comming not soon, maybe probably perhaps')
 
 if __name__ == '__main__':
     @bot.event
@@ -180,4 +210,8 @@ if __name__ == '__main__':
         token = HONMANY_TOKEN
     bot.run(token)
 
-#! https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html
+'''
+https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html
+http://www.not-enough.org/abe/manual/api-aa09/fileio.html
+https://www.javadrive.jp/python/file/index9.html
+'''

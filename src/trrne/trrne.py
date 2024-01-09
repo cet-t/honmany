@@ -17,7 +17,7 @@ def delete_lump(base: str, befores: list[str]) -> str:
     return base
 
 
-def deco_s_deco(func):
+def base_decorator(func):
     '''
     https://qiita.com/nshinya/items/b6746a0c07e9e20389e8
     '''
@@ -28,7 +28,7 @@ def deco_s_deco(func):
     return param
 
 
-@deco_s_deco
+@base_decorator
 def prefix(func, prefix: str):
     def wrap(*args, **kwargs):
         line = '*------------------------------*'
