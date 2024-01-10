@@ -1,9 +1,14 @@
+from typing import Any, Dict, List, Optional, Union
 import discord
-from discord.ext import commands
 from discord import app_commands
 from random import randint
 import os
 from datetime import datetime
+
+from discord.app_commands.commands import Group
+from discord.app_commands.translator import locale_str
+from discord.permissions import Permissions
+from discord.utils import MISSING
 
 from trrne.lottery import Lottery
 from for4 import *
@@ -30,13 +35,12 @@ async def cc(interaction: discord.Interaction):
 @tree.command(name='user_info', description='ユーザー情報')
 @app_commands.describe(member='メンバー')
 async def user_info(interaction: discord.Interaction, member: discord.Member):
-    user_id = member.id
+    user_id = f'ユーザーID: {member.id}'
     mc = member.created_at
     account_created = f'アカウント作成日時: {mc.year}/{mc.month}/{mc.day} {mc.hour}:{mc.minute}:{mc.second}'
     mj = member.joined_at
     server_joined = f'サーバー参加日時: {mj.year}/{mj.month}/{mj.day} {mj.hour}:{mj.minute}:{mj.second}'
-    roles = ','.join(
-        [role.mention for role in member.roles if role.name != '@everyone'])
+    roles = f'ロール: {",".join([role.mention for role in member.roles if role.name != "@everyone"])}'
     info_embed = discord.Embed(
         title=member.name,
         description=f'{user_id}\n{account_created}\n{server_joined}\n{roles}',
@@ -61,7 +65,7 @@ async def show_names(interaction: discord.Interaction, member: discord.Member):
 @tree.command(name='registered_users_list', description='登録されているユーザーリスト')
 async def registered_users(interaction: discord.Interaction):
     try:
-        users: list[str] = [
+        users = [
             f'<@{os.path.basename(file).removesuffix(".txt")}>' for file in os.listdir('./nicks')]
         counts: list[int] = []
         for user in users:
@@ -131,7 +135,7 @@ async def lot10(interaction: discord.Interaction):
 @tree.command(name='lot_n', description='道徳n点の方向けn連くじ')
 @app_commands.describe(count='回数')
 async def lotn(interaction: discord.Interaction, count: int):
-    counters: list[int] = [0] * kuji.length
+    counters = [0] * kuji.length
     for _ in range(count):
         counters[Lottery.bst(kuji.weights)] += 1
     await interaction.response.send_message('\n'.join([
@@ -175,6 +179,7 @@ async def delete_bet(interaction: discord.Interaction):
     try:
         if not os.path.exists(get_point_filepath(interaction.user.id)):
             return await interaction.response.send_message('アカウントが登録されていません。', ephemeral=True)
+
         os.remove(get_point_filepath(interaction.user.id))
         await interaction.response.send_message('アカウントを削除しました。', ephemeral=True)
     except Exception as e:
@@ -192,7 +197,19 @@ async def current_balance(interaction: discord.Interaction):
 
 @tree.command(name='balance_ranking', description='ポイントランキング')
 async def balance_ranking(interaction: discord.Interaction):
-    pass
+    if len(os.listdir('./points')) < 1:
+        await interaction.response.send_message('0登録', ephemeral=True)
+    points: dict[str, int] = {}
+    for d in os.listdir('./points'):
+        with open(dir := d, mode='r', encoding=ENCODING_UTF8) as f:
+            points[f'<@{os.path.basename(dir).removesuffix(".txt")}>'] = f.read()
+    sorted_points = sorted(points.items())
+    await interaction.response.send_message(discord.Embed(
+        title='Balance Ranking',
+        description=[
+            f'#{i+1} {sorted_points[i][0]}: {sorted_points[i][1]}' for i in range(len(sorted_points))],
+        colour=discord.Colour.orange()
+    ))
 
 
 @tree.command(name='betting', description='所持しているポイントを表示')
@@ -200,18 +217,11 @@ async def do_bet(interaction: discord.Interaction):
     await interaction.response.send_message('comming not soon, maybe probably perhaps')
 
 
-class Bet:
-    def __init__(self, bot: discord.Client, tree: app_commands.CommandTree) -> None:
-        self.bot = bot
-        self.tree = tree
-    
-
-
 if __name__ == '__main__':
-    @bot.event()
+    @bot.event
     async def on_ready():
         print('i\'m ready')
-        await bot.change_presence(activity=discord.Game('なんか'))
+        await bot.change_presence(activity=discord.Game('なんか'), status=discord.Status.idle)
         await tree.sync()
 
     try:
