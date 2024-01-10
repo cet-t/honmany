@@ -1,4 +1,5 @@
 import discord
+from discord.ext import commands
 from discord import app_commands
 from random import randint
 import os
@@ -114,7 +115,7 @@ async def delete_name(interaction: discord.Interaction, target: discord.Member, 
         await interaction.response.send_message(REJECTED, ephemeral=True)
 
 
-@tree.command(name='lot_10', description='道徳46点の方向け')
+@tree.command(name='lot_10', description='道徳46点の方向け10連くじ')
 async def lot10(interaction: discord.Interaction):
     try:
         dst1: list[str] = []
@@ -127,7 +128,7 @@ async def lot10(interaction: discord.Interaction):
         await interaction.response.send_message(REJECTED)
 
 
-@tree.command(name='lot_n', description='道徳n点の方向け')
+@tree.command(name='lot_n', description='道徳n点の方向けn連くじ')
 @app_commands.describe(count='回数')
 async def lotn(interaction: discord.Interaction, count: int):
     counters: list[int] = [0] * kuji.length
@@ -138,7 +139,7 @@ async def lotn(interaction: discord.Interaction, count: int):
     ]))
 
 
-@tree.command(name='lot_1', description='道徳100点の方向け')
+@tree.command(name='lot_1', description='道徳100点の方向け単発くじ')
 async def lot1(interaction: discord.Interaction):
     index = Lottery.bst(kuji.weights)
     dst = f'{kuji.subjects[index]}({kuji.weights[index]/kuji.total_weight*100}%)'
@@ -156,8 +157,8 @@ async def demona(interaction: discord.Interaction, name: str):
     await interaction.response.send_message(dmn(name))
 
 
-@tree.command(name='register_gamble', description='登録する')
-async def register_gamble(interaction: discord.Interaction):
+@tree.command(name='register_bet', description='登録する')
+async def register_bet(interaction: discord.Interaction):
     try:
         if os.path.exists(get_point_filepath(interaction.user.id)):
             return await interaction.response.send_message('すでに登録されています。', ephemeral=True)
@@ -169,8 +170,8 @@ async def register_gamble(interaction: discord.Interaction):
         await interaction.response.send_message(str(e), ephemeral=True)
 
 
-@tree.command(name='delete_gamble', description='削除する')
-async def delete_gamble(interaction: discord.Interaction):
+@tree.command(name='delete_bet', description='削除する')
+async def delete_bet(interaction: discord.Interaction):
     try:
         if not os.path.exists(get_point_filepath(interaction.user.id)):
             return await interaction.response.send_message('アカウントが登録されていません。', ephemeral=True)
@@ -180,22 +181,34 @@ async def delete_gamble(interaction: discord.Interaction):
         await interaction.response.send_message(str(e), ephemeral=True)
 
 
-@tree.command(name='show_balanced_gamble_point', description='所持しているポイントを表示')
-async def show_point(interaction: discord.Interaction):
+@tree.command(name='current_balance', description='所持しているポイントを表示')
+async def current_balance(interaction: discord.Interaction):
     try:
         with open(get_point_filepath(interaction.user.id)) as f:
             await interaction.response.send_message(f'所持ポイント: {f.read()}', ephemeral=True)
     except:
-        # await interaction.response.send_message(f'アカウントが登録されていない可能性があります。"/{sys._getframe().f_code.co_name}"コマンドを実行してください。', ephemeral=True)
-        await interaction.response.send_message(f'アカウントが登録されていない可能性があります。"/{register_gamble.name}"コマンドを実行してください。', ephemeral=True)
+        await interaction.response.send_message(f'アカウントが登録されていない可能性があります。"/{register_bet.name}"コマンドを実行してください。', ephemeral=True)
+
+
+@tree.command(name='balance_ranking', description='ポイントランキング')
+async def balance_ranking(interaction: discord.Interaction):
+    pass
 
 
 @tree.command(name='betting', description='所持しているポイントを表示')
-async def do_gamble(interaction: discord.Interaction):
+async def do_bet(interaction: discord.Interaction):
     await interaction.response.send_message('comming not soon, maybe probably perhaps')
 
+
+class Bet:
+    def __init__(self, bot: discord.Client, tree: app_commands.CommandTree) -> None:
+        self.bot = bot
+        self.tree = tree
+    
+
+
 if __name__ == '__main__':
-    @bot.event
+    @bot.event()
     async def on_ready():
         print('i\'m ready')
         await bot.change_presence(activity=discord.Game('なんか'))
