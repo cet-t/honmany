@@ -1,0 +1,2 @@
+﻿class AccountNotExistException(BaseException):
+    pass

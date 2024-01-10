@@ -9,7 +9,7 @@ def iika(name: str) -> str:
     return f'いいか、{name}。生きているというのは何よりも尊いんだ。それを恥ずかしく思うだなんてそのほうが恥ずかしいんだぞ？だから、俺のことを見て『あれ死んだと思ってた（笑）』とか笑っちゃう奴らに生きる価値とかないよな'
 
 
-shota = discord.Embed(
+niko = discord.Embed(
     title="まくにこ",
     description="本名:まーくにこちん(Mark-Nicotine)\n\
         1/13(?)/2004生まれの世界的スーパーショタコン\n\
