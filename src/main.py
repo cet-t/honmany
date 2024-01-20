@@ -260,8 +260,8 @@ class MyBot:
             load_dotenv()
             return os.environ[self.token_key]
         except:
-            import myenv
-            return myenv.environ[self.token_key]
+            import pyenv
+            return pyenv.environ[self.token_key]
 
 
 if __name__ == '__main__':
