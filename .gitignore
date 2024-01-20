@@ -1,4 +1,4 @@
 .env
-pyenv.py
+myenv.py
 __pycache__
 discord.py

@@ -1,5 +1,5 @@
 ﻿ENCRYPT_KEY = 32
 
 environ = {
-    'HONMANY_TOKEN': 'NzM4NjczNzA5ODAzNTAzNjc4.G0_eHY.xtmmrtdMB0-hCQ7jOn7Ls8g3KMnW4fnBuziLao'
+    'HONMANY_TOKEN': 'NzM4NjczNzA5ODAzNTAzNjc4.G3VFzg._a-_oMC5ngK7sTJ0RRpk2OM7hrLajzKhxsk8Qk'
 }
