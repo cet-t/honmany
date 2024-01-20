@@ -2,21 +2,20 @@ import discord
 from discord import app_commands
 from random import randint
 import os
-from datetime import datetime
 import json
 
-from trrne.lottery import Lottery
+from trrne.lottery import *
 from for4 import *
 from emb import *
 from trrne.trrne import *
-from user_dict import UserDict
+from user_dict import *  # UserDict
 
 
 bot = discord.Client(intents=discord.Intents.default())
 tree = app_commands.CommandTree(bot)
 
 
-class get_filepath:
+class GetPath:
     @staticmethod
     def nicks(id: int) -> str:
         return f'./nicks/{id}.txt'
@@ -51,7 +50,7 @@ async def user_info(interaction: discord.Interaction, member: discord.Member):
 @app_commands.guild_only()
 async def show_names(interaction: discord.Interaction, member: discord.Member):
     try:
-        with open(get_filepath.nicks(member.id), 'r') as f:
+        with open(GetPath.nicks(member.id), 'r') as f:
             await interaction.response.send_message('\n'.join(f.read().split(' ')))
     except:
         await interaction.response.send_message(REJECTED)
@@ -60,11 +59,9 @@ async def show_names(interaction: discord.Interaction, member: discord.Member):
 @tree.command(name='registered_users', description='登録されているユーザーリスト')
 async def registered_users(interaction: discord.Interaction):
     try:
-        users = [
-            f'<@{os.path.basename(file).removesuffix(".txt")}>' for file in os.listdir('./nicks')]
         counts: list[int] = []
-        for user in users:
-            with open(get_filepath.nicks(delete_lump(user, ['<@', '>'])), 'r') as f:
+        for user in (users := [f'<@{os.path.basename(file).removesuffix(".txt")}>' for file in os.listdir('./nicks')]):
+            with open(GetPath.nicks(delete_lump(user, ['<@', '>'])), 'r') as f:
                 counts.append(len(f.read().split(' ')))
         await interaction.response.send_message(embed=discord.Embed(
             title='registered users list',
@@ -80,7 +77,7 @@ async def registered_users(interaction: discord.Interaction):
 @app_commands.guild_only()
 async def honmany(interaction: discord.Interaction):
     try:
-        with open(get_filepath.nicks(interaction.user.id), 'r') as f:
+        with open(GetPath.nicks(interaction.user.id), 'r') as f:
             names = f.read().split(' ')
             await interaction.response.send_message(f'{names[randint(0, len(names)-1)]}サン、コンニチハ！')
     except:
@@ -92,7 +89,7 @@ async def honmany(interaction: discord.Interaction):
 @app_commands.guild_only()
 async def add_name(interaction: discord.Interaction, target: discord.Member, addition: str):
     try:
-        with open(get_filepath.nicks(target.id), 'a') as f:
+        with open(GetPath.nicks(target.id), 'a') as f:
             f.write(f' {addition}')
             await interaction.response.send_message(f'success! added {addition} to nicknames list', ephemeral=True)
     except:
@@ -104,7 +101,7 @@ async def add_name(interaction: discord.Interaction, target: discord.Member, add
 @app_commands.guild_only()
 async def delete_name(interaction: discord.Interaction, target: discord.Member, delete: str):
     try:
-        with open(get_filepath.nicks(target.id), 'w+') as f:
+        with open(GetPath.nicks(target.id), 'w+') as f:
             names = f.read().split(' ')
             names.remove(delete)
             f.write(str.join(' ', names))
@@ -161,51 +158,65 @@ async def iikax(interaction: discord.Interaction, name: str):
 @tree.command(name='register_user', description='ユーザーを登録する')
 @app_commands.describe(member='member')
 async def register_user(interaction: discord.Interaction, member: discord.Member):
-    if os.path.exists(filepath := get_filepath.user(member.id)):
+    if os.path.exists(filepath := GetPath.user(member.id)):
         return await interaction.response.send_message('すでに登録されています', ephemeral=True)
     with open(filepath, 'x') as f:
-        user_data = UserDict({
-            'name': member.name,
-            'id': member.id,
-            'created': str(member.created_at.now()),
-            'bet': {
-                'enable': True,
-                'points': 100
-            }
-        })
+        user_data = UserDict(
+            name=member.name,
+            id=member.id,
+            created=str(member.created_at.now()),
+            nicks=[],
+            bet=GambleDict(
+                enable=True,
+                points=100
+            )
+        )
         user_data['nicks'].append(member.display_name)
-        json.dump(user_data, f)
+        json.dump(user_data, f, indent=4)
         await interaction.response.send_message('登録しました', ephemeral=True)
+
+
+@tree.command(name='delete_user', description='ユーザーを削除する')
+@app_commands.describe(member='member')
+async def delete_user(interaction: discord.Interaction, member: discord.Member):
+    if not os.path.exists(filepath := GetPath.user(member.id)):
+        return await interaction.response.send_message('登録されていません', ephemeral=True)
+    await os.remove(filepath)
 
 
 @tree.command(name='enable_bet', description='賭けを有効化する')
 async def bet_enable(interaction: discord.Interaction):
-    if not os.path.exists(get_filepath.user(interaction.user.id)):
+    if not os.path.exists(filepath := GetPath.user(interaction.user.id)):
         return await interaction.response.send_message('ユーザーが登録されていません', ephemeral=True)
     try:
-        with open(get_filepath.user(interaction.user.id), 'r+') as f:
+        with open(filepath, 'w') as f:
             user_data = UserDict(json.load(f))
             user_data['bet']['enable'] = True
-            json.dump(user_data, f)
+            json.dump(user_data, f, indent=4)
             await interaction.response.send_message('enable betting', ephemeral=True)
     except Exception as e:
-        print(str(e))
+        print('raise', str(e))
+        raise e
 
 
 @tree.command(name='disable_bet', description='賭けを無効化する')
 async def bet_disable(interaction: discord.Interaction):
-    if not os.path.exists(get_filepath.user(interaction.user.id)):
+    if not os.path.exists(filepath := GetPath.user(interaction.user.id)):
         return await interaction.response.send_message('ユーザーが登録されていません', ephemeral=True)
-    with open(get_filepath.user(interaction.user.id), 'r+') as f:
-        user_data = json.load(f)
-        user_data['bet']['enable'] = False
-        json.dump(user_data, f)
-        await interaction.response.send_message('disable betting', ephemeral=True)
+    try:
+        with open(filepath, 'w') as f:
+            user_data = UserDict(json.load(f))
+            user_data['bet']['enable'] = False
+            json.dump(user_data, f, indent=4)
+            await interaction.response.send_message('disable betting', ephemeral=True)
+    except Exception as e:
+        print('raise', str(e))
+        raise e
 
 
 @tree.command(name='current_balance', description='所持しているポイントを表示')
 async def current_balance(interaction: discord.Interaction):
-    if not os.path.exists(path := get_filepath.user(interaction.user.id)):
+    if not os.path.exists(path := GetPath.user(interaction.user.id)):
         return await interaction.response.send_message('ユーザーが登録されていません', ephemeral=True)
     with open(path, 'r') as f:
         await interaction.response.send_message(f'所持ポイント: {f.read()}', ephemeral=True)
@@ -219,18 +230,38 @@ async def balance_ranking(interaction: discord.Interaction):
     for d in os.listdir('./points'):
         with open(dir := d, mode='r') as f:
             points[f'<@{os.path.basename(dir).removesuffix(".txt")}>'] = f.read()
-    sorted_points = sorted(points.items())
-    await interaction.response.send_message(discord.Embed(
-        title='Balance Ranking',
-        description=[
-            f'#{i+1} {sorted_points[i][0]}: {sorted_points[i][1]}' for i in range(len(sorted_points))],
-        colour=discord.Colour.orange()
-    ))
+    try:
+        sorted_points = sorted(points.items())
+        await interaction.response.send_message(discord.Embed(
+            title='Balance Ranking',
+            description=[
+                f'#{i+1} {sorted_points[i][0]}: {sorted_points[i][1]}' for i in range(len(sorted_points))],
+            colour=discord.Colour.orange()
+        ))
+    except:
+        raise Exception()
 
 
 @tree.command(name='betting', description='所持しているポイントを表示')
-async def do_bet(interaction: discord.Interaction):
-    await interaction.response.send_message('comming not soon, maybe probably perhaps')
+@app_commands.describe(amount='量')
+async def do_bet(interaction: discord.Interaction, amount: int):
+    with open(GetPath.user(interaction.user.id), 'r') as f:
+        if amount > (remain_point := (player_data := UserDict(json.load(f)))['bet']['points']):
+            return await interaction.response.send_message(f'残金が足りません。(残り{remain_point})')
+
+
+class MyBot:
+    def __init__(self, token_key: str) -> None:
+        self.token_key = token_key
+
+    def load_environ(self) -> str:
+        try:
+            from dotenv import load_dotenv
+            load_dotenv()
+            return os.environ[self.token_key]
+        except:
+            import myenv
+            return myenv.environ[self.token_key]
 
 
 if __name__ == '__main__':
@@ -240,14 +271,8 @@ if __name__ == '__main__':
         await bot.change_presence(activity=discord.Game('なんか'), status=discord.Status.idle)
         await tree.sync()
 
-    try:
-        from dotenv import load_dotenv
-        load_dotenv()
-        token = os.environ['HONMANY_TOKEN']
-    except:
-        from pyenv import *
-        token = HONMANY_TOKEN
-    bot.run(token)
+    mine = MyBot('HONMANY_TOKEN')
+    bot.run(mine.load_environ())
 
 '''
 https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html

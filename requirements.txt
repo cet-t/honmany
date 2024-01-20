@@ -1,3 +1,2 @@
 ﻿discord.py[speed]
 python-dotenv
-# discord-buttons-plugin

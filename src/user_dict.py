@@ -1,7 +1,7 @@
-﻿from typing_extensions import TypedDict
+﻿from typing import TypedDict
 
 
-class BetDict(TypedDict):
+class GambleDict(TypedDict):
     enable: bool
     points: int
 
@@ -11,4 +11,4 @@ class UserDict(TypedDict):
     id: int
     created: str
     nicks: list[str]
-    bet: BetDict
+    bet: GambleDict
