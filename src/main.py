@@ -3,6 +3,7 @@ from discord import app_commands
 from random import randint
 import os
 import json
+import pathlib
 
 from trrne.lottery import *
 from for4 import *
@@ -130,12 +131,21 @@ async def lot1(interaction: discord.Interaction):
 
 @tree.command(name='lot10', description='道徳46点の方向け10連くじ')
 async def lot10(interaction: discord.Interaction):
-    dst1: list[str] = []
-    for i in range(10):
-        index = Lottery.bst(kuji.weights())
-        percentage = kuji.weights()[index]/kuji.total_weight()*100
-        dst1.append(f'{i+1}: {kuji.subjects()[index]}({percentage}%)')
-    await interaction.response.send_message('\n'.join(dst1))
+    stamps = LotteryPair([
+        ('<:rainbowleo:1198626986269085767>', 0.2),  # rainbow
+        ('<:carwakimoto:1198625297122214008>', 100)  # normal
+    ])
+    dst = ''
+    for _ in range(10):
+        dst += stamps.subjects[Lottery.bst(stamps.weights)]
+    await interaction.response.send_message(dst)
+
+    # dst1: list[str] = []
+    # for i in range(10):
+    #     index = Lottery.bst(kuji.weights())
+    #     percentage = kuji.weights()[index]/kuji.total_weight()*100
+    #     dst1.append(f'{i+1}: {kuji.subjects()[index]}({percentage}%)')
+    # await interaction.response.send_message('\n'.join(dst1))
 
 
 @tree.command(name='super_hyper_ultra_joke', description='おもろすぎるもの')
@@ -164,15 +174,15 @@ async def register_user(interaction: discord.Interaction, member: discord.Member
         user_data = UserDict(
             name=member.name,
             id=member.id,
-            created=str(member.created_at.now()),
+            created=member.created_at.now().__str__(),
             nicks=[],
             bet=GambleDict(
                 enable=True,
                 points=100
             )
         )
-        user_data['nicks'].append(member.display_name)
-        json.dump(user_data, f, indent=4)
+        user_data.get('nicks').append(member.display_name)
+        json.dump(dict(user_data), f, indent=4)
         await interaction.response.send_message('登録しました', ephemeral=True)
 
 
@@ -181,37 +191,33 @@ async def register_user(interaction: discord.Interaction, member: discord.Member
 async def delete_user(interaction: discord.Interaction, member: discord.Member):
     if not os.path.exists(filepath := GetPath.user(member.id)):
         return await interaction.response.send_message('登録されていません', ephemeral=True)
-    await os.remove(filepath)
+    os.remove(filepath)
+    await interaction.response.send_message('削除しました。', ephemeral=True)
 
 
 @tree.command(name='enable_bet', description='賭けを有効化する')
 async def bet_enable(interaction: discord.Interaction):
     if not os.path.exists(filepath := GetPath.user(interaction.user.id)):
         return await interaction.response.send_message('ユーザーが登録されていません', ephemeral=True)
-    try:
-        with open(filepath, 'w') as f:
-            user_data = UserDict(json.load(f))
-            user_data['bet']['enable'] = True
-            json.dump(user_data, f, indent=4)
-            await interaction.response.send_message('enable betting', ephemeral=True)
-    except Exception as e:
-        print('raise', str(e))
-        raise e
+    # TODO なんか冗長な気がする 短くしたい
+    with open(filepath, 'r') as f:
+        pre_data = UserDict(json.load(f))
+        pre_data['bet']['enable'] = True
+        with open(filepath, 'w') as j:
+            json.dump(pre_data, j, indent=4)
+        await interaction.response.send_message('賭けを有効化しました。', ephemeral=True)
 
 
 @tree.command(name='disable_bet', description='賭けを無効化する')
 async def bet_disable(interaction: discord.Interaction):
     if not os.path.exists(filepath := GetPath.user(interaction.user.id)):
         return await interaction.response.send_message('ユーザーが登録されていません', ephemeral=True)
-    try:
-        with open(filepath, 'w') as f:
-            user_data = UserDict(json.load(f))
-            user_data['bet']['enable'] = False
-            json.dump(user_data, f, indent=4)
-            await interaction.response.send_message('disable betting', ephemeral=True)
-    except Exception as e:
-        print('raise', str(e))
-        raise e
+    with open(filepath, 'r') as f:
+        pre_data = UserDict(json.load(f))
+        pre_data['bet']['enable'] = False
+        with open(filepath, 'w') as j:
+            json.dump(pre_data, j, indent=4)
+        await interaction.response.send_message('賭けを無効化しました。', ephemeral=True)
 
 
 @tree.command(name='current_balance', description='所持しているポイントを表示')
@@ -240,6 +246,18 @@ async def balance_ranking(interaction: discord.Interaction):
         ))
     except:
         raise Exception()
+
+
+@tree.command(name='leokart', description='leokart')
+async def leokart(interaction: discord.Interaction):
+    stamps = LotteryPair([
+        ('rainbowleo', 0.1),
+        ('wakimotocar', 100)
+    ])
+    dst = ''
+    for _ in range(10):
+        dst += f':{stamps.subjects[Lottery.bst(stamps.weights)]}:'
+    await interaction.response.send_message(dst)
 
 
 @tree.command(name='betting', description='所持しているポイントを表示')
@@ -275,7 +293,8 @@ if __name__ == '__main__':
     bot.run(mine.load_environ())
 
 '''
-https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html
+dpyドキュメント https://discordpy.readthedocs.io/ja/stable/ext/commands/index.html
+
 https://note.nkmk.me/python-file-io-open-with
 http://www.not-enough.org/abe/manual/api-aa09/fileio.html
 https://www.javadrive.jp/python/file/index9.html
